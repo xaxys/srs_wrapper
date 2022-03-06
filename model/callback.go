@@ -1,43 +1,17 @@
 package model
 
-type SrsBaseReq struct {
-	Action   string `json:"action" validate:"required"`
-	ClientID string `json:"client_id" validate:"required"`
-	IP       string `json:"ip" validate:"required" validate:"required"`
-	VHost    string `json:"vhost" validate:"required"`
-	App      string `json:"app" validate:"required"`
+type SrsCallbackReq struct {
+	Action   string `json:"action"`
+	ClientID string `json:"client_id"`
+	IP       string `json:"ip"`
+	VHost    string `json:"vhost"`
+	App      string `json:"app"`
+	Param    string `json:"param"`
+	TcUrl    string `json:"tcUrl"`
+	PageUrl  string `json:"pageUrl"`
+	Stream   string `json:"stream"`
 }
 
-type OnConnectReq struct {
-	SrsBaseReq
-	TcUrl   string `json:"tcUrl" validate:"required,url"`
-	PageUrl string `json:"pageUrl" validate:"required,url"`
-}
+var PermGrantedRes = []byte("0")
 
-type OnCloseReq struct {
-	SrsBaseReq
-}
-
-type OnPublishReq struct {
-	SrsBaseReq
-	Stream string `json:"stream" validate:"required"`
-}
-
-type OnUnpublishReq struct {
-	SrsBaseReq
-	Stream string `json:"stream" validate:"required"`
-}
-
-type OnPlayReq struct {
-	SrsBaseReq
-	Stream string `json:"stream" validate:"required"`
-}
-
-type OnStopReq struct {
-	SrsBaseReq
-	Stream string `json:"stream" validate:"required"`
-}
-
-var PermGrantedRes = []byte{0}
-
-var PermRejectedRes = []byte{1}
+var PermRejectedRes = []byte("1")

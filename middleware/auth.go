@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"srs_wrapper/config"
 	"srs_wrapper/model"
+	"strings"
 
 	"net/url"
 
@@ -28,9 +29,6 @@ func init() {
 		jwtToken, ok := ctx.Values().Get("jwt").(*jwt.Token)
 		if ok {
 			jwtInfo := jwtToken.Claims.(jwt.MapClaims)
-			// if exp, ok := jwtInfo["exp"].(int64); ok && exp >= time.Now().Unix() {
-			// 	ctx.Values().Set("user_id", jwtInfo["user_id"].(uint))
-			// }
 			fid := jwtInfo["user_id"].(float64)
 			ctx.Values().Set("user_id", uint(fid))
 		}
@@ -46,13 +44,7 @@ func init() {
 }
 
 var tcUrlJwtConfig = jwt.Config{
-	ErrorHandler: func(ctx iris.Context, err error) {
-		if err == nil {
-			return
-		}
-		ctx.StopExecution()
-		ctx.Write(model.PermRejectedRes)
-	},
+	CredentialsOptional: config.AppConfig.GetBool("app.guest"),
 
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		return jwtkey, nil
@@ -61,11 +53,24 @@ var tcUrlJwtConfig = jwt.Config{
 	SigningMethod: jwt.SigningMethodHS256,
 
 	Extractor: func(ctx iris.Context) (string, error) {
-		req := model.OnConnectReq{}
-		ctx.ReadJSON(&req)
-		tcUrl, err := url.Parse(req.TcUrl)
-
-		return tcUrl.Query().Get("token"), err
+		body := &model.SrsCallbackReq{}
+		ctx.ReadJSON(&body)
+		ctx.Values().Set("body", body)
+		token := ""
+		if body.Param != "" {
+			param, err := url.ParseQuery(strings.TrimLeft(body.Param, "?"))
+			if err != nil {
+				return "", err
+			}
+			token = param.Get("token")
+		} else {
+			tcUrl, err := url.Parse(body.TcUrl)
+			if err != nil {
+				return "", err
+			}
+			token = tcUrl.Query().Get("token")
+		}
+		return token, nil
 	},
 }
 

@@ -57,7 +57,7 @@ func CreateUser(ujson *UserJson) (*User, error) {
 		ujson.DisplayName = ujson.Name
 	}
 	if ujson.GroupID == 0 {
-		ujson.GroupID = guestGroupID
+		ujson.GroupID = GuestGroupID
 	}
 
 	user := &User{

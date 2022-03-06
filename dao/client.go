@@ -7,7 +7,7 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-var guestGroupID = GetGroupByName("guest").ID
+var GuestGroupID = GetGroupByName("guest").ID
 
 func GetGroupByClient(clientID string) *Group {
 	groupID, ok := database.Cache.Get(clientID)
@@ -23,7 +23,7 @@ func CreateClientWithUserID(clientID string, userID uint) {
 }
 
 func CreateGuestClient(clientID string) {
-	database.Cache.Set(clientID, guestGroupID, cache.NoExpiration)
+	database.Cache.Set(clientID, GuestGroupID, cache.NoExpiration)
 }
 
 func DeleteClient(clientID string) {

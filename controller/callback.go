@@ -10,95 +10,107 @@ import (
 )
 
 func PostConnect(ctx iris.Context) {
-	req := model.OnConnectReq{}
-	ctx.ReadJSON(&req)
+	body := ctx.Values().Get("body").(*model.SrsCallbackReq)
 
-	if req.Action != "on_connect" {
+	if body.Action != "on_connect" {
 		ctx.Write(model.PermRejectedRes)
+		return
 	}
 
 	if userID, ok := ctx.Values().Get("user_id").(uint); ok {
-		dao.CreateClientWithUserID(req.ClientID, userID)
+		dao.CreateClientWithUserID(body.ClientID, userID)
 		ctx.Write(model.PermGrantedRes)
-		fmt.Printf("[Client %v] logined as [User %v]", req.ClientID, userID)
+		fmt.Printf("[Client %s] logined as [User %d]\n", body.ClientID, userID)
 	} else if config.AppConfig.GetBool("app.guest") {
-		dao.CreateGuestClient(req.ClientID)
+		dao.CreateGuestClient(body.ClientID)
 		ctx.Write(model.PermGrantedRes)
-		fmt.Printf("[Client %v] logined as [Guest]", req.ClientID)
+		fmt.Printf("[Client %s] logined as [Guest]\n", body.ClientID)
 	} else {
 		ctx.Write(model.PermRejectedRes)
 	}
 }
 
 func PostClose(ctx iris.Context) {
-	req := model.OnCloseReq{}
-	ctx.ReadJSON(&req)
+	body := ctx.Values().Get("body").(*model.SrsCallbackReq)
 
-	if req.Action != "on_close" {
+	if body.Action != "on_close" {
 		ctx.Write(model.PermRejectedRes)
+		return
 	}
 
-	dao.DeleteClient(req.ClientID)
+	dao.DeleteClient(body.ClientID)
 	ctx.Write(model.PermGrantedRes)
-	fmt.Printf("[Client %v] logout", req.ClientID)
+	fmt.Printf("[Client %s] logout\n", body.ClientID)
 }
 
 func PostPublish(ctx iris.Context) {
-	req := model.OnPublishReq{}
-	ctx.ReadJSON(&req)
+	body := ctx.Values().Get("body").(*model.SrsCallbackReq)
 
-	if req.Action != "on_publish" {
+	if body.Action != "on_publish" {
 		ctx.Write(model.PermRejectedRes)
+		return
 	}
 
-	group := dao.GetGroupByClient(req.ClientID)
-	if group != nil && !dao.HasPermission(group, "callback.publish") {
-		ctx.Write(model.PermGrantedRes)
-		fmt.Printf("[Client %v] start to publish stream", req.ClientID)
+	group := dao.GetGroupByClient(body.ClientID)
+	if group == nil && config.AppConfig.GetBool("app.guest") {
+		group = dao.GetGroupByID(dao.GuestGroupID)
 	} else {
 		ctx.Write(model.PermRejectedRes)
-		fmt.Printf("[Client %v] has no permission to publish stream", req.ClientID)
+		fmt.Printf("[Client %s] as guest is forbidden to publish stream\n", body.ClientID)
+	}
+	if !dao.HasPermission(group, "callback.publish") {
+		ctx.Write(model.PermRejectedRes)
+		fmt.Printf("[Client %s] has no permission to publish stream\n", body.ClientID)
+	} else {
+		ctx.Write(model.PermGrantedRes)
+		fmt.Printf("[Client %s] start to publish stream\n", body.ClientID)
 	}
 }
 
 func PostUnpublish(ctx iris.Context) {
-	req := model.OnUnpublishReq{}
-	ctx.ReadJSON(&req)
+	body := ctx.Values().Get("body").(*model.SrsCallbackReq)
 
-	if req.Action != "on_unpublish" {
+	if body.Action != "on_unpublish" {
 		ctx.Write(model.PermRejectedRes)
+		return
 	}
 
 	ctx.Write(model.PermGrantedRes)
-	fmt.Printf("[Client %v] stop to publish stream", req.ClientID)
+	fmt.Printf("[Client %s] stop to publish stream\n", body.ClientID)
 }
 
 func PostPlay(ctx iris.Context) {
-	req := model.OnPlayReq{}
-	ctx.ReadJSON(&req)
+	body := ctx.Values().Get("body").(*model.SrsCallbackReq)
 
-	if req.Action != "on_play" {
+	if body.Action != "on_play" {
 		ctx.Write(model.PermRejectedRes)
+		return
 	}
 
-	group := dao.GetGroupByClient(req.ClientID)
-	if group != nil && !dao.HasPermission(group, "callback.play") {
-		ctx.Write(model.PermGrantedRes)
-		fmt.Printf("[Client %v] start to play stream", req.ClientID)
+	group := dao.GetGroupByClient(body.ClientID)
+	if group == nil && config.AppConfig.GetBool("app.guest") {
+		group = dao.GetGroupByID(dao.GuestGroupID)
 	} else {
 		ctx.Write(model.PermRejectedRes)
-		fmt.Printf("[Client %v] has no permission to play stream", req.ClientID)
+		fmt.Printf("[Client %s] as guest is forbidden to play stream\n", body.ClientID)
+	}
+	if !dao.HasPermission(group, "callback.play") {
+		ctx.Write(model.PermRejectedRes)
+		fmt.Printf("[Client %s] has no permission to play stream\n", body.ClientID)
+	} else {
+		ctx.Write(model.PermGrantedRes)
+		fmt.Printf("[Client %s] start to play stream\n", body.ClientID)
 	}
 }
 
 func PostStop(ctx iris.Context) {
-	req := model.OnStopReq{}
-	ctx.ReadJSON(&req)
+	body := ctx.Values().Get("body").(*model.SrsCallbackReq)
 
-	if req.Action != "on_stop" {
+	if body.Action != "on_stop" {
 		ctx.Write(model.PermRejectedRes)
+		return
 	}
 
 	ctx.Write(model.PermGrantedRes)
-	fmt.Printf("[Client %v] stop to play stream", req.ClientID)
+	fmt.Printf("[Client %s] stop to play stream\n", body.ClientID)
 }
