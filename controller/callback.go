@@ -52,7 +52,7 @@ func PostPublish(ctx iris.Context) {
 	}
 
 	group := dao.GetGroupByClient(req.ClientID)
-	if group != nil && group.HasPermission("callback.publish") {
+	if group != nil && !dao.HasPermission(group, "callback.publish") {
 		ctx.Write(model.PermGrantedRes)
 		fmt.Printf("[Client %v] start to publish stream", req.ClientID)
 	} else {
@@ -82,7 +82,7 @@ func PostPlay(ctx iris.Context) {
 	}
 
 	group := dao.GetGroupByClient(req.ClientID)
-	if group != nil && group.HasPermission("callback.play") {
+	if group != nil && !dao.HasPermission(group, "callback.play") {
 		ctx.Write(model.PermGrantedRes)
 		fmt.Printf("[Client %v] start to play stream", req.ClientID)
 	} else {

@@ -15,9 +15,9 @@ type User struct {
 
 type UserJson struct {
 	Name        string `json:"name" validate:"required,gte=2,lte=50"`
-	Password    string `json:"password" validate:"required"`
-	DisplayName string `json:"display_name" validate:"required,gte=2,lte=50"`
-	GroupID     uint   `json:"Group_id" validate:"required"`
+	Password    string `json:"password" validate:"gte=8,lte=32"`
+	DisplayName string `json:"display_name"`
+	GroupID     uint   `json:"group_id"`
 }
 
 type AllUserReq struct {

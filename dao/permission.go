@@ -67,11 +67,16 @@ func CreatePermission(aul *PermissionJson) *Permission {
 	return permission
 }
 
-func UpdatePermission(pj *PermissionJson, id uint) *Permission {
-	permission := &Permission{}
+func UpdatePermission(pjson *PermissionJson, id uint) *Permission {
+	permission := &Permission{
+		Name:        pjson.Name,
+		DisplayName: pjson.DisplayName,
+		Description: pjson.Description,
+		Default:     pjson.Default,
+	}
 	permission.ID = id
 
-	if err := database.DB.Model(&permission).Updates(pj).Error; err != nil {
+	if err := database.DB.Model(&permission).Updates(pjson).Error; err != nil {
 		fmt.Printf("UpdatePermissionError: %v\n", err)
 	}
 

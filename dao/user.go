@@ -50,9 +50,15 @@ func GetAllUsersWithParam(name, displayName, orderBy string, offset, limit int) 
 	return
 }
 
-func CreateUser(ujson *UserJson) *User {
+func CreateUser(ujson *UserJson) (*User, error) {
 	salt, _ := bcrypt.Salt(10)
 	hash, _ := bcrypt.Hash(ujson.Password, salt)
+	if ujson.DisplayName == "" {
+		ujson.DisplayName = ujson.Name
+	}
+	if ujson.GroupID == 0 {
+		ujson.GroupID = guestGroupID
+	}
 
 	user := &User{
 		Name:        ujson.Name,
@@ -63,24 +69,32 @@ func CreateUser(ujson *UserJson) *User {
 
 	if err := database.DB.Create(user).Error; err != nil {
 		fmt.Printf("CreateUserErr: %v\n", err)
+		return nil, err
 	}
 
-	return user
+	return user, nil
 }
 
-func UpdateUser(ujson *UserJson, id uint) *User {
+func UpdateUser(ujson *UserJson, id uint) (*User, error) {
 	salt, _ := bcrypt.Salt(10)
 	hash, _ := bcrypt.Hash(ujson.Password, salt)
-	ujson.Password = string(hash)
 
-	user := &User{}
+	user := &User{
+		Name:        ujson.Name,
+		GroupID:     ujson.GroupID,
+		DisplayName: ujson.DisplayName,
+	}
 	user.ID = id
-
-	if err := database.DB.Model(&user).Updates(ujson).Error; err != nil {
-		fmt.Printf("UpdateUserErr: %v\n", err)
+	if ujson.Password != "" {
+		user.Password = string(hash)
 	}
 
-	return user
+	if err := database.DB.Model(&user).Updates(user).Error; err != nil {
+		fmt.Printf("UpdateUserErr: %v\n", err)
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func CheckLogin(name, password string) (bool, string, error) {

@@ -24,12 +24,3 @@ type AllGroupReq struct {
 	Limit   int    `json:"limit" validate:"number"`
 	Offset  int    `json:"offset" validate:"number"`
 }
-
-func (g *Group) HasPermission(perm string) bool {
-	for _, p := range g.Perms {
-		if p.Name == perm {
-			return true
-		}
-	}
-	return false
-}

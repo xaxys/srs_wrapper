@@ -41,11 +41,14 @@ func CreateUser(ctx iris.Context) {
 		// 	fmt.Println(e.Param())
 		// 	fmt.Println()
 		// }
-	} else {
-		u := dao.CreateUser(aul)
+	} else if uid := ctx.Values().Get("user_id").(uint); aul.GroupID != 0 && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
 		ctx.StatusCode(iris.StatusOK)
-		if u.ID == 0 {
-			ctx.JSON(model.ApiResponse(false, u, "操作失败"))
+		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有指定权限组的权限")))
+	} else {
+		u, err := dao.CreateUser(aul)
+		ctx.StatusCode(iris.StatusOK)
+		if err != nil {
+			ctx.JSON(model.ErrorUpdateDatabase(err))
 		} else {
 			ctx.JSON(model.ApiResponse(true, u, "操作成功"))
 		}
@@ -71,11 +74,17 @@ func UpdateUser(ctx iris.Context) {
 	} else if id, err := ctx.Params().GetUint("id"); err != nil {
 		ctx.StatusCode(iris.StatusBadRequest)
 		ctx.JSON(model.ErrorVerification(err))
-	} else {
-		u := dao.UpdateUser(aul, id)
+	} else if uid := ctx.Values().Get("user_id").(uint); id != uid && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
 		ctx.StatusCode(iris.StatusOK)
-		if u.ID == 0 {
-			ctx.JSON(model.ApiResponse(false, u, "操作失败"))
+		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有账号管理权限")))
+	} else if aul.GroupID != 0 && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
+		ctx.StatusCode(iris.StatusOK)
+		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有修改权限组的权限")))
+	} else {
+		u, err := dao.UpdateUser(aul, id)
+		ctx.StatusCode(iris.StatusOK)
+		if err != nil {
+			ctx.JSON(model.ErrorInsertDatabase(err))
 		} else {
 			ctx.JSON(model.ApiResponse(true, u, "操作成功"))
 		}
@@ -87,6 +96,9 @@ func DeleteUser(ctx iris.Context) {
 	if id, err := ctx.Params().GetUint("id"); err != nil {
 		ctx.StatusCode(iris.StatusBadRequest)
 		ctx.JSON(model.ErrorVerification(err))
+	} else if uid := ctx.Values().Get("user_id").(uint); id != uid && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
+		ctx.StatusCode(iris.StatusOK)
+		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有账号管理权限")))
 	} else {
 		dao.DeleteUserByID(id)
 

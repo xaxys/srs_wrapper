@@ -7,7 +7,7 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
-var guestGroupID = GetGroupByName("guest")
+var guestGroupID = GetGroupByName("guest").ID
 
 func GetGroupByClient(clientID string) *Group {
 	groupID, ok := database.Cache.Get(clientID)

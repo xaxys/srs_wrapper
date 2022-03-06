@@ -52,6 +52,10 @@ func CreateGroup(gjson *GroupJson, perms []*Permission) *Group {
 		Description: gjson.Description,
 	}
 
+	if gjson.DisplayName == "" {
+		gjson.DisplayName = gjson.Name
+	}
+
 	if err := database.DB.Create(group).Error; err != nil {
 		fmt.Printf("CreateGroupErr: %v\n", err)
 	}
@@ -64,12 +68,24 @@ func CreateGroup(gjson *GroupJson, perms []*Permission) *Group {
 }
 
 func UpdateGroup(gjson *GroupJson, id uint) *Group {
-	group := &Group{}
+	group := &Group{
+		Name:        gjson.Name,
+		DisplayName: gjson.DisplayName,
+		Description: gjson.Description,
+	}
 	group.ID = id
 
-	if err := database.DB.Model(&group).Updates(gjson).Error; err != nil {
+	if err := database.DB.Model(&group).Updates(group).Error; err != nil {
 		fmt.Printf("UpdatGroupErr: %v\n", err)
 	}
 
 	return group
+}
+
+func HasPermission(group *Group, perm string) bool {
+	perms := []*Permission{}
+	if err := database.DB.Model(&group).Association("Perms").Find(&perms, "name = ?", perm); err != nil {
+		fmt.Printf("Database HasPermission Error: %v\n", err)
+	}
+	return len(perms) > 0
 }

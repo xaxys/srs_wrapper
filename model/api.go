@@ -50,6 +50,11 @@ func ErrorUnauthorized(err error) *ApiJson {
 	return ApiResponse(false, err.Error(), "未认证登录")
 }
 
+// ErrorWebSocket 账号权限不足
+func ErrorInsufficientPermissions(err error) *ApiJson {
+	return ApiResponse(false, err.Error(), "账号权限不足")
+}
+
 // ErrorWebSocket 无法升级为长连接
 func ErrorWebSocketUpgrade(err error) *ApiJson {
 	return ApiResponse(false, err.Error(), "无法升级为长连接")

@@ -24,7 +24,11 @@ func CreateSystemAdmin() *User {
 
 	if user.ID == 0 {
 		fmt.Println("Create Default Administrator Account")
-		return dao.CreateUser(aul)
+		u, err := dao.CreateUser(aul)
+		if err != nil {
+			panic(fmt.Errorf("Failed to create administrator account: %v\n", err))
+		}
+		return u
 	} else {
 		return user
 	}

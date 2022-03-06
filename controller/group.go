@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"srs_wrapper/dao"
 	"srs_wrapper/model"
 	"srs_wrapper/util"
@@ -32,6 +33,9 @@ func CreateGroup(ctx iris.Context) {
 		// 	fmt.Println(e.Param())
 		// 	fmt.Println()
 		// }
+	} else if uid := ctx.Values().Get("user_id").(uint); !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
+		ctx.StatusCode(iris.StatusOK)
+		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有权限组管理权限")))
 	} else {
 		u := dao.CreateGroup(aul, []*model.Permission{})
 		ctx.StatusCode(iris.StatusOK)
@@ -62,6 +66,9 @@ func UpdateGroup(ctx iris.Context) {
 	} else if id, err := ctx.Params().GetUint("id"); err != nil {
 		ctx.StatusCode(iris.StatusBadRequest)
 		ctx.JSON(model.ErrorVerification(err))
+	} else if uid := ctx.Values().Get("user_id").(uint); !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
+		ctx.StatusCode(iris.StatusOK)
+		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有权限组管理权限")))
 	} else {
 		u := dao.UpdateGroup(aul, id)
 		ctx.StatusCode(iris.StatusOK)
@@ -78,6 +85,9 @@ func DeleteGroup(ctx iris.Context) {
 	if id, err := ctx.Params().GetUint("id"); err != nil {
 		ctx.StatusCode(iris.StatusBadRequest)
 		ctx.JSON(model.ErrorVerification(err))
+	} else if uid := ctx.Values().Get("user_id").(uint); !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
+		ctx.StatusCode(iris.StatusOK)
+		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有权限组管理权限")))
 	} else {
 		dao.DeleteGroupByID(id)
 

@@ -18,11 +18,11 @@ func Route(app *iris.Application) {
 	app.AllowMethods(iris.MethodOptions)
 
 	app.PartyFunc("/", func(home iris.Party) {
-		// home.HandleDir("/", "./assets")
+		home.HandleDir("/", "./assets")
 
-		// home.Get("/", func(ctx iris.Context) {
-		// 	ctx.Redirect("/index.html")
-		// })
+		home.Get("/", func(ctx iris.Context) {
+			ctx.Redirect("/index.html")
+		})
 
 		home.PartyFunc("/callback", func(callback iris.Party) {
 			callback.Use(middleware.TcUrlExtractor, middleware.TokenValidator)
