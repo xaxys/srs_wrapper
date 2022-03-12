@@ -20,7 +20,7 @@ func CreateSystemAdmin() *User {
 		GroupID:     1,
 	}
 
-	user := dao.GetUserByID(1)
+	user, _ := dao.GetUserByID(1)
 
 	if user.ID == 0 {
 		fmt.Println("Create Default Administrator Account")

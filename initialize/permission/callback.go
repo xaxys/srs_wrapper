@@ -14,7 +14,7 @@ func CreateDefaultCallbackPerm() {
 		Default:     false,
 	}
 
-	if perm := dao.GetPermissionByName(publish.Name); perm.ID == 0 {
+	if perm, _ := dao.GetPermissionByName(publish.Name); perm.ID == 0 {
 		fmt.Printf("Create Default Permission: %s\n", publish.Name)
 		dao.CreatePermission(publish)
 	}
@@ -26,7 +26,7 @@ func CreateDefaultCallbackPerm() {
 		Default:     true,
 	}
 
-	if perm := dao.GetPermissionByName(play.Name); perm.ID == 0 {
+	if perm, _ := dao.GetPermissionByName(play.Name); perm.ID == 0 {
 		fmt.Printf("Create Default Permission: %s\n", play.Name)
 		dao.CreatePermission(play)
 	}

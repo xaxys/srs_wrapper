@@ -51,9 +51,9 @@ func PostPublish(ctx iris.Context) {
 		return
 	}
 
-	group := dao.GetGroupByClient(body.ClientID)
+	group, _ := dao.GetGroupByClient(body.ClientID)
 	if group == nil && config.AppConfig.GetBool("app.guest") {
-		group = dao.GetGroupByID(dao.GuestGroupID)
+		group, _ = dao.GetGroupByID(dao.GuestGroupID)
 	} else {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] as guest is forbidden to publish stream\n", body.ClientID)
@@ -87,9 +87,9 @@ func PostPlay(ctx iris.Context) {
 		return
 	}
 
-	group := dao.GetGroupByClient(body.ClientID)
+	group, _ := dao.GetGroupByClient(body.ClientID)
 	if group == nil && config.AppConfig.GetBool("app.guest") {
-		group = dao.GetGroupByID(dao.GuestGroupID)
+		group, _ = dao.GetGroupByID(dao.GuestGroupID)
 	} else {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] as guest is forbidden to play stream\n", body.ClientID)

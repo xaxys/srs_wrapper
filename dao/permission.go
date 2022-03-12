@@ -6,30 +6,34 @@ import (
 	. "srs_wrapper/model"
 )
 
-func GetPermissionByID(id uint) *Permission {
+func GetPermissionByID(id uint) (*Permission, error) {
 	permission := &Permission{}
 
 	if err := database.DB.First(permission, id).Error; err != nil {
 		fmt.Printf("GetPermissionByIdError: %v\n", err)
+		return nil, err
 	}
 
-	return permission
+	return permission, nil
 }
 
-func GetPermissionByName(name string) *Permission {
+func GetPermissionByName(name string) (*Permission, error) {
 	permission := &Permission{Name: name}
 
 	if err := database.DB.Where(permission).First(permission).Error; err != nil {
 		fmt.Printf("GetPermissionByNameError: %v\n", err)
+		return nil, err
 	}
 
-	return permission
+	return permission, nil
 }
 
-func DeletePermissionByID(id uint) {
+func DeletePermissionByID(id uint) error {
 	if err := database.DB.Delete(&Permission{}, id).Error; err != nil {
 		fmt.Printf("DeletePermissionByIdError: %v\n", err)
+		return err
 	}
+	return nil
 }
 
 func GetAllPermissions() (permissions []*Permission) {
@@ -52,7 +56,7 @@ func GetAllPermissionsWithParam(name string, dft bool, orderBy string, offset, l
 	return
 }
 
-func CreatePermission(aul *PermissionJson) *Permission {
+func CreatePermission(aul *PermissionJson) (*Permission, error) {
 	permission := &Permission{
 		Name:        aul.Name,
 		DisplayName: aul.DisplayName,
@@ -62,12 +66,13 @@ func CreatePermission(aul *PermissionJson) *Permission {
 
 	if err := database.DB.Create(permission).Error; err != nil {
 		fmt.Printf("CreatePermissionError: %v\n", err)
+		return nil, err
 	}
 
-	return permission
+	return permission, nil
 }
 
-func UpdatePermission(pjson *PermissionJson, id uint) *Permission {
+func UpdatePermission(pjson *PermissionJson, id uint) (*Permission, error) {
 	permission := &Permission{
 		Name:        pjson.Name,
 		DisplayName: pjson.DisplayName,
@@ -78,7 +83,8 @@ func UpdatePermission(pjson *PermissionJson, id uint) *Permission {
 
 	if err := database.DB.Model(&permission).Updates(pjson).Error; err != nil {
 		fmt.Printf("UpdatePermissionError: %v\n", err)
+		return nil, err
 	}
 
-	return permission
+	return permission, nil
 }

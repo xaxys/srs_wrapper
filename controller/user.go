@@ -1,170 +1,84 @@
 package controller
 
 import (
-	"fmt"
-	"srs_wrapper/dao"
 	"srs_wrapper/model"
-	"srs_wrapper/util"
+	"srs_wrapper/service"
 
 	"github.com/kataras/iris/v12"
 )
 
 func GetProfile(ctx iris.Context) {
-	userID := ctx.Values().Get("user_id").(uint)
-	user := dao.GetUserByID(userID)
-
-	ctx.StatusCode(iris.StatusOK)
-	ctx.JSON(model.ApiResponse(true, user, "操作成功"))
+	id := ctx.Values().Get("user_id").(uint)
+	response := service.GetUser(id)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }
 
 func GetUser(ctx iris.Context) {
 	id, _ := ctx.Params().GetUint("id")
-	user := dao.GetUserByID(id)
-
-	ctx.StatusCode(iris.StatusOK)
-	ctx.JSON(model.ApiResponse(true, user, "操作成功"))
+	response := service.GetUser(id)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }
 
 func CreateUser(ctx iris.Context) {
 	aul := &model.UserJson{}
 	if err := ctx.ReadJSON(&aul); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorIncompleteData(err))
-	} else if err := util.Validator.Struct(aul); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorVerification(err))
-		// for _, e := range err.(validator.ValidationErrors) {
-		// 	fmt.Println()
-		// 	fmt.Println(e.Namespace())
-		// 	fmt.Println(e.Field())
-		// 	fmt.Println(e.Type())
-		// 	fmt.Println(e.Param())
-		// 	fmt.Println()
-		// }
-	} else if uid := ctx.Values().Get("user_id").(uint); aul.GroupID != 0 && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
-		ctx.StatusCode(iris.StatusOK)
-		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有指定权限组的权限")))
-	} else {
-		u, err := dao.CreateUser(aul)
-		ctx.StatusCode(iris.StatusOK)
-		if err != nil {
-			ctx.JSON(model.ErrorUpdateDatabase(err))
-		} else {
-			ctx.JSON(model.ApiResponse(true, u, "操作成功"))
-		}
+		response := model.ErrorInvalidData(err)
+		ctx.StatusCode(response.Code)
+		ctx.JSON(response)
+		return
 	}
+	id := ctx.Values().Get("user_id").(uint)
+	response := service.CreateUser(id, aul)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }
 
 func UpdateUser(ctx iris.Context) {
 	aul := &model.UserJson{}
 	if err := ctx.ReadJSON(&aul); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorIncompleteData(err))
-	} else if err := util.Validator.Struct(aul); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorVerification(err))
-		// for _, err := range err.(validator.ValidationErrors) {
-		// 	fmt.Println()
-		// 	fmt.Println(err.Namespace())
-		// 	fmt.Println(err.Field())
-		// 	fmt.Println(err.Type())
-		// 	fmt.Println(err.Param())
-		// 	fmt.Println()
-		// }
-	} else if id, err := ctx.Params().GetUint("id"); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorVerification(err))
-	} else if uid := ctx.Values().Get("user_id").(uint); id != uid && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
-		ctx.StatusCode(iris.StatusOK)
-		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有账号管理权限")))
-	} else if aul.GroupID != 0 && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
-		ctx.StatusCode(iris.StatusOK)
-		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有修改权限组的权限")))
-	} else {
-		u, err := dao.UpdateUser(aul, id)
-		ctx.StatusCode(iris.StatusOK)
-		if err != nil {
-			ctx.JSON(model.ErrorInsertDatabase(err))
-		} else {
-			ctx.JSON(model.ApiResponse(true, u, "操作成功"))
-		}
+		response := model.ErrorInvalidData(err)
+		ctx.StatusCode(response.Code)
+		ctx.JSON(response)
+		return
 	}
-
+	qid, _ := ctx.Params().GetUint("id")
+	id := ctx.Values().Get("user_id").(uint)
+	response := service.UpdateUser(qid, id, aul)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }
 
 func DeleteUser(ctx iris.Context) {
-	if id, err := ctx.Params().GetUint("id"); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorVerification(err))
-	} else if uid := ctx.Values().Get("user_id").(uint); id != uid && !dao.HasPermission(&dao.GetUserByID(uid).Group, "admin.account") {
-		ctx.StatusCode(iris.StatusOK)
-		ctx.JSON(model.ErrorInsufficientPermissions(fmt.Errorf("您没有账号管理权限")))
-	} else {
-		dao.DeleteUserByID(id)
-
-		ctx.StatusCode(iris.StatusOK)
-		ctx.JSON(model.ApiResponse(true, nil, "删除成功"))
-	}
+	qid, _ := ctx.Params().GetUint("id")
+	id := ctx.Values().Get("user_id").(uint)
+	response := service.DeleteUser(qid, id)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }
 
 func GetAllUsers(ctx iris.Context) {
-	aul := &model.AllUserReq{}
-	if err := ctx.ReadJSON(&aul); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorIncompleteData(err))
-	} else if err := util.Validator.Struct(aul); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorVerification(err))
-	} else {
-		if aul.Offset == 0 {
-			aul.Offset = 1
-		}
-		if aul.Limit == 0 {
-			aul.Limit = 20
-		}
-		users := dao.GetAllUsersWithParam(aul.Name, aul.DisplayName, aul.OrderBy, aul.Offset, aul.Limit)
-
-		ctx.StatusCode(iris.StatusOK)
-		ctx.JSON(model.ApiResponse(true, users, "操作成功"))
+	req := &model.AllUserReq{}
+	if err := ctx.ReadJSON(&req); err != nil {
+		response := model.ErrorInvalidData(err)
+		ctx.StatusCode(response.Code)
+		ctx.JSON(response)
+		return
 	}
+	response := service.GetAllUsers(req)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }
 
 func UserLogin(ctx iris.Context) {
-	aul := &model.UserJson{}
-
-	if err := ctx.ReadJSON(&aul); err != nil {
-		ctx.StatusCode(iris.StatusBadRequest)
-		ctx.JSON(model.ErrorIncompleteData(fmt.Errorf("请求参数错误")))
-	} else {
-		if UserNameErr := util.Validator.Var(aul.Name, "required,min=4,max=20"); UserNameErr != nil {
-			ctx.StatusCode(iris.StatusBadRequest)
-			ctx.JSON(model.ErrorVerification(fmt.Errorf("用户名格式错误")))
-		} else if PwdErr := util.Validator.Var(aul.Password, "required,min=5,max=20"); PwdErr != nil {
-			ctx.StatusCode(iris.StatusBadRequest)
-			ctx.JSON(model.ErrorVerification(fmt.Errorf("密码格式错误")))
-		} else {
-			ok, token, err := dao.CheckLogin(aul.Name, aul.Password)
-			if ok {
-				ctx.StatusCode(iris.StatusOK)
-				ctx.JSON(model.ApiResponse(ok, token, "登陆成功"))
-			} else if err == nil {
-				ctx.StatusCode(iris.StatusOK)
-				ctx.JSON(model.ErrorUnauthorized(fmt.Errorf("用户名或密码错误")))
-			} else {
-				ctx.StatusCode(iris.StatusInternalServerError)
-				ctx.JSON(model.ErrorBuildJWT(err))
-			}
-		}
-	}
+	response := service.UserLogin(ctx)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }
 
 func UserLogout(ctx iris.Context) {
-	// aui := ctx.Values().GetString("user_id")
-	// uid := uint(tools.Tool.ParseInt(aui, 0))
-	// model.UserAdminLogout(uid)
-
-	// ctx.StatusCode(http.StatusOK)
-	// ctx.JSON(model.ApiResponse(true, nil, "退出登陆"))
-	ctx.StatusCode(iris.StatusNotImplemented)
-	ctx.JSON(model.ErrorInternalServer(fmt.Errorf("Not Implemented")))
+	response := service.UserLogout(ctx)
+	ctx.StatusCode(response.Code)
+	ctx.JSON(response)
 }

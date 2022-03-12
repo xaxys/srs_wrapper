@@ -9,42 +9,46 @@ import (
 	"github.com/jameskeane/bcrypt"
 )
 
-func GetUserByID(id uint) *User {
+func GetUserByID(id uint) (*User, error) {
 	user := &User{}
 
 	if err := database.DB.Preload("Group").First(user, id).Error; err != nil {
 		fmt.Printf("GetUserByIdErr: %v\n", err)
+		return nil, err
 	}
 
-	return user
+	return user, nil
 }
 
-func GetUserByName(name string) *User {
+func GetUserByName(name string) (*User, error) {
 	user := &User{Name: name}
 
 	if err := database.DB.Preload("Group").Where(user).First(user).Error; err != nil {
 		fmt.Printf("GetUserByUserNameErr: %v\n", err)
+		return nil, err
 	}
 
-	return user
+	return user, nil
 }
 
-func DeleteUserByID(id uint) {
+func DeleteUserByID(id uint) error {
 	if err := database.DB.Delete(&User{}, id).Error; err != nil {
 		fmt.Printf("DeleteUserByIdErr: %v\n", err)
+		return err
 	}
+	return nil
 }
 
-func GetAllUsers() []*User {
+func GetAllUsers() ([]*User, error) {
 	return GetAllUsersWithParam("", "", "", 0, 0)
 }
 
-func GetAllUsersWithParam(name, displayName, orderBy string, offset, limit int) (users []*User) {
+func GetAllUsersWithParam(name, displayName, orderBy string, offset, limit int) (users []*User, err error) {
 	user := &User{
 		Name:        name,
 		DisplayName: displayName,
 	}
-	if err := database.DB.Preload("Group").Where(user).Find(&users).Error; err != nil {
+	if err = database.DB.Preload("Group").Where(user).Find(&users).Error; err != nil {
 		fmt.Printf("GetAllUserErr: %v\n", err)
 	}
 	return
@@ -97,15 +101,15 @@ func UpdateUser(ujson *UserJson, id uint) (*User, error) {
 	return user, nil
 }
 
-func CheckLogin(name, password string) (bool, string, error) {
-	user := GetUserByName(name)
-	if user.ID == 0 {
-		return false, "", nil
+func CheckLogin(name, password string) (string, error) {
+	user, err := GetUserByName(name)
+	if err != nil {
+		return "", nil
 	} else if ok := bcrypt.Match(password, user.Password); !ok {
-		return false, "", nil
+		return "", nil
 	} else if token, err := util.GetJwtString(user.ID); err != nil {
-		return false, "", err
+		return "", err
 	} else {
-		return true, token, nil
+		return token, nil
 	}
 }

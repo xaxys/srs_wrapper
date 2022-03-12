@@ -19,7 +19,7 @@ func CreateDefaultAdminPerm() {
 		Default:     false,
 	}
 
-	if perm := dao.GetPermissionByName(aul.Name); perm.ID == 0 {
+	if perm, _ := dao.GetPermissionByName(aul.Name); perm.ID == 0 {
 		fmt.Printf("Create Default Permission: %s\n", aul.Name)
 		dao.CreatePermission(aul)
 	}
