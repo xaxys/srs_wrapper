@@ -20,7 +20,7 @@ func CreateDefaultAdminGroup() {
 
 	if group, _ := dao.GetGroupByName(aul.Name); group.ID == 0 {
 		fmt.Printf("Create Default Group: %s\n", aul.Name)
-		perms := dao.GetAllPermissions()
+		perms, _ := dao.GetAllPermissions()
 		dao.CreateGroup(aul, perms)
 	}
 
@@ -32,7 +32,7 @@ func CreateDefaultAdminGroup() {
 
 	if group, _ := dao.GetGroupByName(gst.Name); group.ID == 0 {
 		fmt.Printf("Create Default Group: %s\n", gst.Name)
-		perms := dao.GetAllPermissionsWithParam("", true, "", 0, 0)
+		perms, _ := dao.GetAllPermissionsWithParam("", true, "", 0, 0)
 		dao.CreateGroup(gst, perms)
 	}
 }

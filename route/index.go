@@ -61,6 +61,7 @@ func Route(app *iris.Application) {
 				perm.Put("/{id:uint}", controller.UpdatePermission)
 				perm.Delete("/{id:uint}", controller.DeletePermission)
 			})
+			account.Get("/graphql", controller.GetGraphQL)
 		})
 	})
 }

@@ -9,6 +9,17 @@ import (
 func GetGroupByID(id uint) (*Group, error) {
 	group := &Group{}
 
+	if err := database.DB.First(group, id).Error; err != nil {
+		fmt.Printf("GetGroupByIdErr: %v\n", err)
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func GetGroupByIDWithPerms(id uint) (*Group, error) {
+	group := &Group{}
+
 	if err := database.DB.Preload("Perms").First(group, id).Error; err != nil {
 		fmt.Printf("GetGroupByIdErr: %v\n", err)
 		return nil, err
@@ -18,6 +29,17 @@ func GetGroupByID(id uint) (*Group, error) {
 }
 
 func GetGroupByName(name string) (*Group, error) {
+	group := &Group{Name: name}
+
+	if err := database.DB.Where(group).First(group).Error; err != nil {
+		fmt.Printf("GetGroupByNameErr: %v\n", err)
+		return nil, err
+	}
+
+	return group, nil
+}
+
+func GetGroupByNameWithPerms(name string) (*Group, error) {
 	group := &Group{Name: name}
 
 	if err := database.DB.Preload("Perms").Where(group).First(group).Error; err != nil {
@@ -44,7 +66,7 @@ func GetAllGroups() ([]*Group, error) {
 func GetAllGroupsWithParam(name, orderBy string, offset, limit int) (groups []*Group, err error) {
 	group := &Group{Name: name}
 
-	if err = database.DB.Preload("Perms").Where(group).Find(&groups).Error; err != nil {
+	if err = database.DB.Where(group).Find(&groups).Error; err != nil {
 		fmt.Printf("GetAllGroupErr: %v\n", err)
 	}
 	return
@@ -90,7 +112,9 @@ func UpdateGroup(gjson *GroupJson, id uint) (*Group, error) {
 	return group, nil
 }
 
-func HasPermission(group *Group, perm string) bool {
+func HasPermission(id uint, perm string) bool {
+	group := &Group{}
+	group.ID = id
 	perms := []*Permission{}
 	if err := database.DB.Model(&group).Association("Perms").Find(&perms, "name = ?", perm); err != nil {
 		fmt.Printf("Database HasPermission Error: %v\n", err)

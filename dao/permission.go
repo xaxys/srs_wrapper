@@ -36,23 +36,21 @@ func DeletePermissionByID(id uint) error {
 	return nil
 }
 
-func GetAllPermissions() (permissions []*Permission) {
-	if err := database.DB.Find(&permissions).Error; err != nil {
+func GetAllPermissions() (permissions []*Permission, err error) {
+	if err = database.DB.Find(&permissions).Error; err != nil {
 		fmt.Printf("GetAllPermissionsError: %v\n", err)
 	}
 	return
 }
 
-func GetAllPermissionsWithParam(name string, dft bool, orderBy string, offset, limit int) (permissions []*Permission) {
+func GetAllPermissionsWithParam(name string, dft bool, orderBy string, offset, limit int) (permissions []*Permission, err error) {
 	permission := &Permission{
 		Name:    name,
 		Default: dft,
 	}
-
-	if err := database.DB.Where(permission).Find(&permissions).Error; err != nil {
+	if err = database.DB.Where(permission).Find(&permissions).Error; err != nil {
 		fmt.Printf("GetAllPermissionsError: %v\n", err)
 	}
-
 	return
 }
 

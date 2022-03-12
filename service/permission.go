@@ -11,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetPermission(id uint) *model.ApiJson {
+func GetPermissionByID(id uint) *model.ApiJson {
 	p, err := dao.GetPermissionByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -20,7 +20,19 @@ func GetPermission(id uint) *model.ApiJson {
 			return model.ErrorQueryDatabase(err)
 		}
 	}
-	return model.Success(p, "获取成功")
+	return model.Success(p.ToJson(), "获取成功")
+}
+
+func GetPermissionByName(name string) *model.ApiJson {
+	p, err := dao.GetPermissionByName(name)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return model.ErrorNotFound(err)
+		} else {
+			return model.ErrorQueryDatabase(err)
+		}
+	}
+	return model.Success(p.ToJson(), "获取成功")
 }
 
 func CreatePermission(id uint, aul *model.PermissionJson) *model.ApiJson {
@@ -43,7 +55,7 @@ func CreatePermission(id uint, aul *model.PermissionJson) *model.ApiJson {
 			return model.ErrorQueryDatabase(err)
 		}
 	}
-	if !dao.HasPermission(&user.Group, "admin.account") {
+	if !dao.HasPermission(user.GroupID, "admin.account") {
 		return model.ErrorNoPermissions(fmt.Errorf("您没有权限管理权限"))
 	}
 	p, err := dao.CreatePermission(aul)
@@ -54,7 +66,7 @@ func CreatePermission(id uint, aul *model.PermissionJson) *model.ApiJson {
 			return model.ErrorInsertDatabase(err)
 		}
 	}
-	return model.SuccessCreate(p, "创建成功")
+	return model.SuccessCreate(p.ToJson(), "创建成功")
 }
 
 func UpdatePermission(qid, id uint, aul *model.PermissionJson) *model.ApiJson {
@@ -77,7 +89,7 @@ func UpdatePermission(qid, id uint, aul *model.PermissionJson) *model.ApiJson {
 			return model.ErrorQueryDatabase(err)
 		}
 	}
-	if !dao.HasPermission(&user.Group, "admin.account") {
+	if !dao.HasPermission(user.GroupID, "admin.account") {
 		return model.ErrorNoPermissions(fmt.Errorf("您没有权限管理权限"))
 	}
 	p, err := dao.UpdatePermission(aul, id)
@@ -88,7 +100,7 @@ func UpdatePermission(qid, id uint, aul *model.PermissionJson) *model.ApiJson {
 			return model.ErrorUpdateDatabase(err)
 		}
 	}
-	return model.SuccessUpdate(p, "更新成功")
+	return model.SuccessUpdate(p.ToJson(), "更新成功")
 }
 
 func DeletePermission(qid, id uint) *model.ApiJson {
@@ -100,7 +112,7 @@ func DeletePermission(qid, id uint) *model.ApiJson {
 			return model.ErrorQueryDatabase(err)
 		}
 	}
-	if !dao.HasPermission(&user.Group, "admin.account") {
+	if !dao.HasPermission(user.GroupID, "admin.account") {
 		return model.ErrorNoPermissions(fmt.Errorf("您没有权限管理权限"))
 	}
 	err = dao.DeletePermissionByID(id)
@@ -124,7 +136,7 @@ func GetAllPermissions(aul *model.AllPermissionReq) *model.ApiJson {
 	if aul.Limit == 0 {
 		aul.Limit = 20
 	}
-	g, err := dao.GetAllGroupsWithParam(aul.Name, aul.OrderBy, aul.Offset, aul.Limit)
+	perms, err := dao.GetAllPermissionsWithParam(aul.Name, aul.Default == "true", aul.OrderBy, aul.Offset, aul.Limit)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return model.ErrorNotFound(err)
@@ -132,5 +144,9 @@ func GetAllPermissions(aul *model.AllPermissionReq) *model.ApiJson {
 			return model.ErrorQueryDatabase(err)
 		}
 	}
-	return model.Success(g, "查询成功")
+	ps := []*model.PermissionJson{}
+	for _, p := range perms {
+		ps = append(ps, p.ToJson())
+	}
+	return model.Success(ps, "查询成功")
 }

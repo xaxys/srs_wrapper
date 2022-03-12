@@ -9,7 +9,7 @@ import (
 
 func GetGroup(ctx iris.Context) {
 	id := ctx.Values().Get("user_id").(uint)
-	response := service.GetGroup(id)
+	response := service.GetGroupByID(id)
 	ctx.StatusCode(response.Code)
 	ctx.JSON(response)
 }

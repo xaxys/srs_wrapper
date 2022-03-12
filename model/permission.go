@@ -13,6 +13,7 @@ type Permission struct {
 }
 
 type PermissionJson struct {
+	ID          uint   `json:"id"`
 	Name        string `json:"name" validate:"required,gte=4,lte=50"`
 	DisplayName string `json:"display_name"`
 	Description string `json:"description"`
@@ -25,4 +26,14 @@ type AllPermissionReq struct {
 	OrderBy string `json:"order_by"`
 	Limit   int    `json:"limit" validate:"number"`
 	Offset  int    `json:"offset" validate:"number"`
+}
+
+func (perm *Permission) ToJson() *PermissionJson {
+	return &PermissionJson{
+		ID:          perm.ID,
+		Name:        perm.Name,
+		DisplayName: perm.DisplayName,
+		Description: perm.Description,
+		Default:     perm.Default,
+	}
 }

@@ -33,6 +33,7 @@ require (
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
+	github.com/graphql-go/graphql v0.8.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/iris-contrib/jade v1.1.4 // indirect
 	github.com/iris-contrib/middleware/cors v0.0.0-20220218204641-8e282f24acb7

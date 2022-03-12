@@ -18,7 +18,7 @@ func PostConnect(ctx iris.Context) {
 	}
 
 	if userID, ok := ctx.Values().Get("user_id").(uint); ok {
-		dao.CreateClientWithUserID(body.ClientID, userID)
+		dao.CreateClient(body.ClientID, userID)
 		ctx.Write(model.PermGrantedRes)
 		fmt.Printf("[Client %s] logined as [User %d]\n", body.ClientID, userID)
 	} else if config.AppConfig.GetBool("app.guest") {
@@ -51,14 +51,14 @@ func PostPublish(ctx iris.Context) {
 		return
 	}
 
-	group, _ := dao.GetGroupByClient(body.ClientID)
-	if group == nil && config.AppConfig.GetBool("app.guest") {
-		group, _ = dao.GetGroupByID(dao.GuestGroupID)
+	id, _ := dao.GetGroupIDByClient(body.ClientID)
+	if id != 0 || config.AppConfig.GetBool("app.guest") {
+		id = dao.GuestGroupID
 	} else {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] as guest is forbidden to publish stream\n", body.ClientID)
 	}
-	if !dao.HasPermission(group, "callback.publish") {
+	if !dao.HasPermission(id, "callback.publish") {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] has no permission to publish stream\n", body.ClientID)
 	} else {
@@ -87,14 +87,14 @@ func PostPlay(ctx iris.Context) {
 		return
 	}
 
-	group, _ := dao.GetGroupByClient(body.ClientID)
-	if group == nil && config.AppConfig.GetBool("app.guest") {
-		group, _ = dao.GetGroupByID(dao.GuestGroupID)
+	id, _ := dao.GetGroupIDByClient(body.ClientID)
+	if id != 0 || config.AppConfig.GetBool("app.guest") {
+		id = dao.GuestGroupID
 	} else {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] as guest is forbidden to play stream\n", body.ClientID)
 	}
-	if !dao.HasPermission(group, "callback.play") {
+	if !dao.HasPermission(id, "callback.play") {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] has no permission to play stream\n", body.ClientID)
 	} else {

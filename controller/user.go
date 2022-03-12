@@ -9,14 +9,14 @@ import (
 
 func GetProfile(ctx iris.Context) {
 	id := ctx.Values().Get("user_id").(uint)
-	response := service.GetUser(id)
+	response := service.GetUserAllInfoByID(id)
 	ctx.StatusCode(response.Code)
 	ctx.JSON(response)
 }
 
 func GetUser(ctx iris.Context) {
 	id, _ := ctx.Params().GetUint("id")
-	response := service.GetUser(id)
+	response := service.GetUserByID(id)
 	ctx.StatusCode(response.Code)
 	ctx.JSON(response)
 }

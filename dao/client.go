@@ -3,7 +3,6 @@ package dao
 import (
 	"fmt"
 	"srs_wrapper/database"
-	. "srs_wrapper/model"
 
 	"github.com/patrickmn/go-cache"
 )
@@ -15,15 +14,15 @@ func init() {
 	GuestGroupID = g.ID
 }
 
-func GetGroupByClient(clientID string) (*Group, error) {
+func GetGroupIDByClient(clientID string) (uint, error) {
 	groupID, ok := database.Cache.Get(clientID)
 	if !ok {
-		return nil, fmt.Errorf("Relevant group not found")
+		return 0, fmt.Errorf("Relevant group not found")
 	}
-	return GetGroupByID(groupID.(uint))
+	return groupID.(uint), nil
 }
 
-func CreateClientWithUserID(clientID string, userID uint) error {
+func CreateClient(clientID string, userID uint) error {
 	user, err := GetUserByID(userID)
 	if err != nil {
 		return err

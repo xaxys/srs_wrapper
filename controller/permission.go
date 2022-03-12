@@ -9,7 +9,7 @@ import (
 
 func GetPermission(ctx iris.Context) {
 	id := ctx.Values().Get("user_id").(uint)
-	response := service.GetPermission(id)
+	response := service.GetPermissionByID(id)
 	ctx.StatusCode(response.Code)
 	ctx.JSON(response)
 }

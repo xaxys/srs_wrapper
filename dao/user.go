@@ -12,10 +12,27 @@ import (
 func GetUserByID(id uint) (*User, error) {
 	user := &User{}
 
-	if err := database.DB.Preload("Group").First(user, id).Error; err != nil {
-		fmt.Printf("GetUserByIdErr: %v\n", err)
+	if err := database.DB.First(user, id).Error; err != nil {
+		fmt.Printf("GetUserByIDErr: %v\n", err)
 		return nil, err
 	}
+
+	return user, nil
+}
+
+func GetUserByIDWithGroup(id uint) (*User, error) {
+	user := &User{}
+
+	if err := database.DB.First(user, id).Error; err != nil {
+		fmt.Printf("GetUserByIDWithGroupErr: %v\n", err)
+		return nil, err
+	}
+	group, err := GetGroupByIDWithPerms(user.GroupID)
+	if err != nil {
+		fmt.Printf("GetUserByIDWithGroupErr: %v\n", err)
+		return nil, err
+	}
+	user.Group = group
 
 	return user, nil
 }
@@ -23,10 +40,27 @@ func GetUserByID(id uint) (*User, error) {
 func GetUserByName(name string) (*User, error) {
 	user := &User{Name: name}
 
-	if err := database.DB.Preload("Group").Where(user).First(user).Error; err != nil {
+	if err := database.DB.Where(user).First(user).Error; err != nil {
 		fmt.Printf("GetUserByUserNameErr: %v\n", err)
 		return nil, err
 	}
+
+	return user, nil
+}
+
+func GetUserByNameWithGroup(name string) (*User, error) {
+	user := &User{Name: name}
+
+	if err := database.DB.Where(user).First(user).Error; err != nil {
+		fmt.Printf("GetUserByUserNameErr: %v\n", err)
+		return nil, err
+	}
+	group, err := GetGroupByIDWithPerms(user.GroupID)
+	if err != nil {
+		fmt.Printf("GetUserByNameWithGroupErr: %v\n", err)
+		return nil, err
+	}
+	user.Group = group
 
 	return user, nil
 }
@@ -48,7 +82,7 @@ func GetAllUsersWithParam(name, displayName, orderBy string, offset, limit int) 
 		Name:        name,
 		DisplayName: displayName,
 	}
-	if err = database.DB.Preload("Group").Where(user).Find(&users).Error; err != nil {
+	if err = database.DB.Where(user).Find(&users).Error; err != nil {
 		fmt.Printf("GetAllUserErr: %v\n", err)
 	}
 	return
