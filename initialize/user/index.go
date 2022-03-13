@@ -1,18 +1,21 @@
 package group
 
 import (
+	"errors"
 	"fmt"
 
 	"srs_wrapper/config"
 	"srs_wrapper/dao"
 	. "srs_wrapper/model"
+
+	"gorm.io/gorm"
 )
 
 func CreateDefaultUsers() {
 	CreateSystemAdmin()
 }
 
-func CreateSystemAdmin() *User {
+func CreateSystemAdmin() {
 	aul := &UserJson{
 		Name:        config.AppConfig.GetString("admin.name"),
 		DisplayName: config.AppConfig.GetString("admin.display_name"),
@@ -20,16 +23,12 @@ func CreateSystemAdmin() *User {
 		GroupID:     1,
 	}
 
-	user, _ := dao.GetUserByID(1)
-
-	if user.ID == 0 {
-		fmt.Println("Create Default Administrator Account")
-		u, err := dao.CreateUser(aul)
-		if err != nil {
-			panic(fmt.Errorf("Failed to create administrator account: %v\n", err))
+	if _, err := dao.GetUserByID(1); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Println("Create Default Administrator Account")
+			dao.CreateUser(aul)
+		} else {
+			panic(err)
 		}
-		return u
-	} else {
-		return user
 	}
 }

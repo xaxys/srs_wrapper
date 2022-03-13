@@ -1,9 +1,12 @@
 package permission
 
 import (
+	"errors"
 	"fmt"
 	"srs_wrapper/dao"
 	. "srs_wrapper/model"
+
+	"gorm.io/gorm"
 )
 
 func CreateDefaultPermissions() {
@@ -19,8 +22,12 @@ func CreateDefaultAdminPerm() {
 		Default:     false,
 	}
 
-	if perm, _ := dao.GetPermissionByName(aul.Name); perm.ID == 0 {
-		fmt.Printf("Create Default Permission: %s\n", aul.Name)
-		dao.CreatePermission(aul)
+	if _, err := dao.GetPermissionByName(aul.Name); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Printf("Create Default Permission: %s\n", aul.Name)
+			dao.CreatePermission(aul)
+		} else {
+			panic(err)
+		}
 	}
 }

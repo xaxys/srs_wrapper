@@ -1,9 +1,12 @@
 package permission
 
 import (
+	"errors"
 	"fmt"
 	"srs_wrapper/dao"
 	. "srs_wrapper/model"
+
+	"gorm.io/gorm"
 )
 
 func CreateDefaultCallbackPerm() {
@@ -14,9 +17,13 @@ func CreateDefaultCallbackPerm() {
 		Default:     false,
 	}
 
-	if perm, _ := dao.GetPermissionByName(publish.Name); perm.ID == 0 {
-		fmt.Printf("Create Default Permission: %s\n", publish.Name)
-		dao.CreatePermission(publish)
+	if _, err := dao.GetPermissionByName(publish.Name); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Printf("Create Default Permission: %s\n", publish.Name)
+			dao.CreatePermission(publish)
+		} else {
+			panic(err)
+		}
 	}
 
 	play := &PermissionJson{
@@ -26,8 +33,12 @@ func CreateDefaultCallbackPerm() {
 		Default:     true,
 	}
 
-	if perm, _ := dao.GetPermissionByName(play.Name); perm.ID == 0 {
-		fmt.Printf("Create Default Permission: %s\n", play.Name)
-		dao.CreatePermission(play)
+	if _, err := dao.GetPermissionByName(play.Name); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			fmt.Printf("Create Default Permission: %s\n", play.Name)
+			dao.CreatePermission(play)
+		} else {
+			panic(err)
+		}
 	}
 }

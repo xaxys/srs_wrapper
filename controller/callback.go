@@ -53,7 +53,7 @@ func PostPublish(ctx iris.Context) {
 
 	id, _ := dao.GetGroupIDByClient(body.ClientID)
 	if id != 0 || config.AppConfig.GetBool("app.guest") {
-		id = dao.GuestGroupID
+		id = dao.GetGuestGroupID()
 	} else {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] as guest is forbidden to publish stream\n", body.ClientID)
@@ -89,7 +89,7 @@ func PostPlay(ctx iris.Context) {
 
 	id, _ := dao.GetGroupIDByClient(body.ClientID)
 	if id != 0 || config.AppConfig.GetBool("app.guest") {
-		id = dao.GuestGroupID
+		id = dao.GetGuestGroupID()
 	} else {
 		ctx.Write(model.PermRejectedRes)
 		fmt.Printf("[Client %s] as guest is forbidden to play stream\n", body.ClientID)
